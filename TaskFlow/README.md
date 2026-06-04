@@ -5,7 +5,7 @@ A feature-rich, responsive task management web application built with HTML, CSS,
 ## 📋 Project Overview
 
 **Title:** Web-Based Task Management System  
-**Type:** RFP (Request for Proposal) College Project  
+**Type:** RFP (Real Time Field Project) College Project  
 **Technologies:** HTML5, CSS3, Vanilla JavaScript  
 **Storage:** Browser LocalStorage (no backend required)
 
@@ -20,8 +20,6 @@ A feature-rich, responsive task management web application built with HTML, CSS,
 - **Settings** – Profile management, notification preferences, data export
 - **Responsive Design** – Works on desktop and mobile
 - **Dark Theme** – Modern dark UI with accent colors
-
-── settings.html       # Settings page
 ```
 
 ## 🚀 How to Run
