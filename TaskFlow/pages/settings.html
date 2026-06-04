@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TaskFlow – Settings</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .settings-layout { display:grid; grid-template-columns:220px 1fr; gap:1.5rem; }
+    .settings-nav { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:0.8rem; display:flex; flex-direction:column; gap:4px; height:fit-content; }
+    .snav-item { padding:0.65rem 0.9rem; border-radius:10px; cursor:pointer; font-size:0.87rem; color:var(--text-muted); display:flex; align-items:center; gap:10px; transition:all 0.2s; }
+    .snav-item:hover { background:var(--surface2); color:var(--text); }
+    .snav-item.active { background:rgba(108,99,255,0.15); color:var(--accent); }
+    .snav-item i { width:18px; text-align:center; }
+    .settings-section { display:none; }
+    .settings-section.active { display:block; }
+    .setting-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1.2rem 0; border-bottom:1px solid var(--border);
+    }
+    .setting-row:last-child { border-bottom:none; }
+    .setting-info h3 { font-size:0.9rem; font-weight:600; margin-bottom:3px; }
+    .setting-info p { font-size:0.78rem; color:var(--text-muted); }
+    .toggle-switch { position:relative; width:44px; height:24px; cursor:pointer; }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .toggle-track { position:absolute; inset:0; background:var(--surface2); border:1px solid var(--border); border-radius:12px; transition:all 0.3s; }
+    .toggle-switch input:checked + .toggle-track { background:var(--accent); border-color:var(--accent); }
+    .toggle-thumb { position:absolute; top:3px; left:3px; width:16px; height:16px; background:#fff; border-radius:50%; transition:transform 0.3s; }
+    .toggle-switch input:checked ~ .toggle-thumb { transform:translateX(20px); }
+    .profile-avatar-big {
+      width:80px; height:80px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:1.8rem; font-weight:700; color:#fff; margin-bottom:1rem;
+    }
+    .danger-zone { border:1px solid rgba(239,68,68,0.3); border-radius:var(--radius); padding:1.4rem; margin-top:1.5rem; }
+    .danger-zone h3 { color:var(--danger); font-family:'Syne',sans-serif; margin-bottom:1rem; font-size:0.95rem; }
+    @media (max-width:768px) { .settings-layout { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon"><i class="fa-solid fa-bolt"></i></span>
+    <span class="logo-text">TaskFlow</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="../index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>My Tasks</span></a>
+    <a href="projects.html" class="nav-item"><i class="fa-solid fa-folder-open"></i><span>Projects</span></a>
+    <a href="calendar.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Calendar</span></a>
+    <a href="analytics.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i><span>Analytics</span></a>
+    <a href="settings.html" class="nav-item active"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">SR</div>
+    <div class="user-info">
+      <span class="user-name">Sravani Reddy</span>
+      <span class="user-role">Student</span>
+    </div>
+  </div>
+</aside>
+
+<main class="main-content">
+  <header class="top-bar">
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    <div class="top-bar-left">
+      <h1 class="page-title">Settings</h1>
+      <p class="page-sub">Manage your preferences</p>
+    </div>
+  </header>
+
+  <div class="settings-layout">
+    <!-- SETTINGS NAV -->
+    <div class="settings-nav">
+      <div class="snav-item active" onclick="showSection('profile',this)"><i class="fa-solid fa-user"></i> Profile</div>
+      <div class="snav-item" onclick="showSection('notifications',this)"><i class="fa-solid fa-bell"></i> Notifications</div>
+      <div class="snav-item" onclick="showSection('appearance',this)"><i class="fa-solid fa-palette"></i> Appearance</div>
+      <div class="snav-item" onclick="showSection('data',this)"><i class="fa-solid fa-database"></i> Data</div>
+      <div class="snav-item" onclick="showSection('about',this)"><i class="fa-solid fa-circle-info"></i> About</div>
+    </div>
+
+    <!-- SECTIONS -->
+    <div>
+      <!-- PROFILE -->
+      <div class="settings-section active card" id="sec-profile">
+        <div class="card-header"><h2>Profile</h2></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:1rem 0">
+          <div class="profile-avatar-big">SR</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.8rem">
+          <div>
+            <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:5px">Full Name</label>
+            <input type="text" id="pName" value="Sravani Reddy" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.87rem;padding:0.6rem 0.9rem;outline:none;width:100%" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:5px">Email</label>
+            <input type="email" id="pEmail" value="reddysravani894@gmail.com" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.87rem;padding:0.6rem 0.9rem;outline:none;width:100%" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:5px">Role</label>
+            <select style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.87rem;padding:0.6rem 0.9rem;outline:none;width:100%">
+              <option>Student</option>
+              <option>Developer</option>
+              <option>Manager</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <button class="btn-primary" style="align-self:flex-start;margin-top:0.5rem" onclick="saveProfile()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div class="settings-section card" id="sec-notifications">
+        <div class="card-header"><h2>Notifications</h2></div>
+        <div class="setting-row">
+          <div class="setting-info"><h3>Task Reminders</h3><p>Get reminded before task due dates</p></div>
+          <label class="toggle-switch"><input type="checkbox" checked onchange="saveSetting('reminders',this.checked)"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info"><h3>Daily Summary</h3><p>Daily digest of pending tasks</p></div>
+          <label class="toggle-switch"><input type="checkbox" onchange="saveSetting('dailySummary',this.checked)"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info"><h3>Sound Effects</h3><p>Play sound on task completion</p></div>
+          <label class="toggle-switch"><input type="checkbox" checked onchange="saveSetting('sounds',this.checked)"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+      </div>
+
+      <!-- APPEARANCE -->
+      <div class="settings-section card" id="sec-appearance">
+        <div class="card-header"><h2>Appearance</h2></div>
+        <div class="setting-row">
+          <div class="setting-info"><h3>Theme</h3><p>Choose your preferred theme</p></div>
+          <select style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;padding:0.5rem 0.9rem;outline:none" onchange="saveSetting('theme',this.value)">
+            <option value="dark">Dark (Default)</option>
+            <option value="darker">Darker</option>
+            <option value="midnight">Midnight Blue</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info"><h3>Compact Mode</h3><p>Reduce spacing for more density</p></div>
+          <label class="toggle-switch"><input type="checkbox" onchange="saveSetting('compact',this.checked)"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info"><h3>Animations</h3><p>Enable UI animations</p></div>
+          <label class="toggle-switch"><input type="checkbox" checked onchange="saveSetting('animations',this.checked)"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info"><h3>Default Task View</h3><p>Choose list or grid view for tasks</p></div>
+          <select style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;padding:0.5rem 0.9rem;outline:none" onchange="saveSetting('defaultView',this.value)">
+            <option value="list">List View</option>
+            <option value="grid">Grid View</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- DATA -->
+      <div class="settings-section card" id="sec-data">
+        <div class="card-header"><h2>Data Management</h2></div>
+        <div class="setting-row">
+          <div class="setting-info"><h3>Export Tasks</h3><p>Download all tasks as JSON file</p></div>
+          <button class="btn-primary" onclick="exportData()"><i class="fa-solid fa-download"></i> Export</button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <h3>Task Statistics</h3>
+            <p>Total tasks stored in your browser</p>
+          </div>
+          <span id="taskStat" style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;color:var(--accent)">—</span>
+        </div>
+        <div class="danger-zone">
+          <h3><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>Danger Zone</h3>
+          <div class="setting-row" style="border:none;padding:0">
+            <div class="setting-info"><h3>Clear All Tasks</h3><p>Permanently delete all your tasks</p></div>
+            <button class="btn-danger" onclick="clearAllTasks()"><i class="fa-solid fa-trash"></i> Clear All</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABOUT -->
+      <div class="settings-section card" id="sec-about">
+        <div class="card-header"><h2>About TaskFlow</h2></div>
+        <div style="text-align:center;padding:2rem 0">
+          <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem;color:#fff">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:4px">TaskFlow</div>
+          <div style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem">Version 1.0.0</div>
+          <div style="background:var(--surface2);border-radius:12px;padding:1.2rem;text-align:left;max-width:400px;margin:0 auto">
+            <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.7">
+              <strong style="color:var(--text)">RFP Project</strong> – Web-Based Task Management System<br>
+              <strong style="color:var(--text)">Technologies:</strong> HTML, CSS, JavaScript<br>
+              <strong style="color:var(--text)">Purpose:</strong> Help users organize and track daily activities, improve productivity and task monitoring.<br>
+              <strong style="color:var(--text)">Features:</strong> Task creation, filtering, calendar view, analytics, project management.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/storage.js"></script>
+<script>
+function showSection(id, el) {
+  document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.snav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'data') { document.getElementById('taskStat').textContent = Storage.getTasks().length; }
+}
+function saveProfile() { showToast('Profile saved!', 'success'); }
+function saveSetting(key, val) { localStorage.setItem('tf_setting_' + key, val); showToast('Setting saved.', 'info'); }
+function exportData() {
+  const data = { tasks: Storage.getTasks(), projects: Storage.getProjects(), exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'taskflow-export.json'; a.click();
+  showToast('Data exported!', 'success');
+}
+function clearAllTasks() {
+  if (!confirm('Are you sure? This will permanently delete ALL tasks!')) return;
+  localStorage.removeItem('taskflow_tasks');
+  showToast('All tasks cleared.', 'info');
+  document.getElementById('taskStat').textContent = 0;
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('taskStat').textContent = Storage.getTasks().length;
+});
+</script>
+</body>
+</html>

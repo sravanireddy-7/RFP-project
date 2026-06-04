@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TaskFlow – Calendar</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .cal-layout { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
+    .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.2rem; }
+    .cal-nav { display:flex; align-items:center; gap:0.6rem; }
+    .cal-nav button { background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:0.4rem 0.7rem; cursor:pointer; transition:all 0.2s; }
+    .cal-nav button:hover { background: var(--accent); border-color:var(--accent); }
+    .cal-month-title { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+    .cal-day-header { text-align:center; padding:0.5rem; font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+    .cal-day {
+      min-height:90px; padding:0.5rem;
+      background: var(--surface2); border-radius:10px;
+      cursor: pointer; transition: all 0.2s;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .cal-day:hover { background: #2a2e44; border-color: var(--border); }
+    .cal-day.other-month { opacity: 0.3; }
+    .cal-day.today { border-color: var(--accent); background: rgba(108,99,255,0.1); }
+    .cal-day.selected { border-color: var(--accent2); background: rgba(255,107,157,0.1); }
+    .cal-day-num { font-size:0.8rem; font-weight:600; color:var(--text-muted); }
+    .cal-day.today .cal-day-num { color: var(--accent); font-weight:800; }
+    .cal-task-dot { font-size:0.68rem; padding:2px 6px; border-radius:4px; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dot-high { background:rgba(239,68,68,0.2); color:#ef4444; }
+    .dot-medium { background:rgba(249,115,22,0.2); color:#f97316; }
+    .dot-low { background:rgba(34,197,94,0.2); color:#22c55e; }
+    .more-tasks { font-size:0.68rem; color:var(--text-muted); margin-top:2px; }
+    .selected-day-tasks { }
+    .no-day-selected { text-align:center; padding:2rem; color:var(--text-muted); font-size:0.85rem; }
+    @media (max-width:900px) { .cal-layout { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon"><i class="fa-solid fa-bolt"></i></span>
+    <span class="logo-text">TaskFlow</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="../index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>My Tasks</span></a>
+    <a href="calendar.html" class="nav-item active"><i class="fa-solid fa-calendar-days"></i><span>Calendar</span></a>
+    <a href="analytics.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i><span>Analytics</span></a>
+    <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">SR</div>
+    <div class="user-info">
+      <span class="user-name">Sravani Reddy</span>
+      <span class="user-role">Student</span>
+    </div>
+  </div>
+</aside>
+
+<main class="main-content">
+  <header class="top-bar">
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    <div class="top-bar-left">
+      <h1 class="page-title">Calendar</h1>
+      <p class="page-sub">View tasks by date</p>
+    </div>
+    <div class="top-bar-right">
+      <button class="btn-primary" onclick="goToday()"><i class="fa-solid fa-calendar-day"></i> Today</button>
+    </div>
+  </header>
+
+  <div class="cal-layout">
+    <div class="card">
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+          <span class="cal-month-title" id="calTitle"></span>
+          <button onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-header"><h2 id="selectedDayTitle">Select a Day</h2></div>
+        <div id="selectedDayTasks">
+          <div class="no-day-selected"><i class="fa-regular fa-calendar" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.3"></i>Click a date to view tasks</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/storage.js"></script>
+<script>
+let calDate = new Date();
+let selectedDate = null;
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function renderCalendar() {
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+  document.getElementById('calTitle').textContent = `${MONTHS[month]} ${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const tasks = Storage.getTasks();
+
+  let html = DAYS.map(d => `<div class="cal-day-header">${d}</div>`).join('');
+
+  // Prev month days
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const day = daysInPrev - i;
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    html += `<div class="cal-day other-month" onclick="selectDay('${dateStr}')"><div class="cal-day-num">${day}</div></div>`;
+  }
+
+  // Current month days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayTasks = tasks.filter(t => t.dueDate === dateStr);
+    const isToday = dateStr === todayStr;
+    const isSelected = dateStr === selectedDate;
+
+    let taskHtml = dayTasks.slice(0, 2).map(t =>
+      `<div class="cal-task-dot dot-${t.priority}">${escapeHtml(t.title)}</div>`
+    ).join('');
+    if (dayTasks.length > 2) taskHtml += `<div class="more-tasks">+${dayTasks.length - 2} more</div>`;
+
+    html += `<div class="cal-day ${isToday?'today':''} ${isSelected?'selected':''}" onclick="selectDay('${dateStr}')">
+      <div class="cal-day-num">${d}</div>
+      ${taskHtml}
+    </div>`;
+  }
+
+  // Next month fill
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  for (let d = 1; d <= totalCells - firstDay - daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+2).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    html += `<div class="cal-day other-month" onclick="selectDay('${dateStr}')"><div class="cal-day-num">${d}</div></div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function selectDay(dateStr) {
+  selectedDate = dateStr;
+  const d = new Date(dateStr + 'T00:00:00');
+  document.getElementById('selectedDayTitle').textContent = d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+
+  const tasks = Storage.getTasks().filter(t => t.dueDate === dateStr);
+  const container = document.getElementById('selectedDayTasks');
+
+  if (!tasks.length) {
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-check-circle"></i><p>No tasks on this day.</p></div>`;
+  } else {
+    container.innerHTML = tasks.map(t => `
+      <div class="task-item ${t.status==='done'?'completed':''}">
+        <div class="task-check ${t.status==='done'?'checked':''}" onclick="toggleT('${t.id}')">
+          ${t.status==='done'?'<i class="fa-solid fa-check"></i>':''}
+        </div>
+        <div class="task-info">
+          <div class="task-title">${escapeHtml(t.title)}</div>
+          <div class="task-meta">
+            <span class="badge badge-${t.priority}">${t.priority}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  renderCalendar();
+}
+
+function toggleT(id) {
+  const task = Storage.getTasks().find(t => t.id === id);
+  if (task) { Storage.updateTask(id, { status: task.status === 'done' ? 'todo' : 'done' }); }
+  if (selectedDate) selectDay(selectedDate);
+  else renderCalendar();
+}
+
+function changeMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
+function goToday() { calDate = new Date(); renderCalendar(); }
+function escapeHtml(str) { return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.addEventListener('DOMContentLoaded', renderCalendar);
+</script>
+</body>
+</html>

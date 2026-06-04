@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TaskFlow – My Tasks</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/tasks.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon"><i class="fa-solid fa-bolt"></i></span>
+    <span class="logo-text">TaskFlow</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="../index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a href="tasks.html" class="nav-item active"><i class="fa-solid fa-list-check"></i><span>My Tasks</span></a>
+    <a href="calendar.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Calendar</span></a>
+    <a href="analytics.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i><span>Analytics</span></a>
+    <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">SR</div>
+    <div class="user-info">
+      <span class="user-name">Sravani Reddy</span>
+      <span class="user-role">Student</span>
+    </div>
+  </div>
+</aside>
+
+<main class="main-content">
+  <header class="top-bar">
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    <div class="top-bar-left">
+      <h1 class="page-title">My Tasks</h1>
+      <p class="page-sub">Manage and track all your tasks</p>
+    </div>
+    <div class="top-bar-right">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Search tasks..." id="taskSearch" oninput="filterTasks()" />
+      </div>
+      <button class="btn-primary" onclick="openModal('addTaskModal')"><i class="fa-solid fa-plus"></i> New Task</button>
+    </div>
+  </header>
+
+  <!-- FILTERS -->
+  <div class="filter-bar card" style="margin-bottom:1.5rem">
+    <div class="filter-group">
+      <label>Status</label>
+      <div class="filter-tabs" id="statusFilter">
+        <button class="ftab active" data-val="all" onclick="setFilter('status','all',this)">All</button>
+        <button class="ftab" data-val="todo" onclick="setFilter('status','todo',this)">To Do</button>
+        <button class="ftab" data-val="inprogress" onclick="setFilter('status','inprogress',this)">In Progress</button>
+        <button class="ftab" data-val="done" onclick="setFilter('status','done',this)">Done</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Priority</label>
+      <div class="filter-tabs" id="priorityFilter">
+        <button class="ftab active" data-val="all" onclick="setFilter('priority','all',this)">All</button>
+        <button class="ftab" data-val="high" onclick="setFilter('priority','high',this)">High</button>
+        <button class="ftab" data-val="medium" onclick="setFilter('priority','medium',this)">Medium</button>
+        <button class="ftab" data-val="low" onclick="setFilter('priority','low',this)">Low</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Category</label>
+      <select id="categoryFilter" onchange="filterTasks()">
+        <option value="all">All</option>
+        <option value="general">General</option>
+        <option value="college">College</option>
+        <option value="personal">Personal</option>
+        <option value="project">Project</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select id="sortBy" onchange="filterTasks()">
+        <option value="duedate">Due Date</option>
+        <option value="priority">Priority</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- TASK BOARD -->
+  <div class="task-count-bar">
+    <span id="taskCountLabel">Loading tasks...</span>
+    <div style="display:flex;gap:0.5rem;align-items:center">
+      <button class="view-btn active" id="listViewBtn" onclick="setView('list')"><i class="fa-solid fa-list"></i></button>
+      <button class="view-btn" id="gridViewBtn" onclick="setView('grid')"><i class="fa-solid fa-grip"></i></button>
+    </div>
+  </div>
+
+  <div id="tasksContainer" class="tasks-list-view"></div>
+</main>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-overlay" id="addTaskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add New Task</h2>
+      <button onclick="closeModal('addTaskModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editTaskId" />
+      <label>Task Title *</label>
+      <input type="text" id="taskTitle" placeholder="Enter task title..." />
+      <label>Description</label>
+      <textarea id="taskDesc" placeholder="Describe the task..."></textarea>
+      <div class="form-row">
+        <div>
+          <label>Due Date</label>
+          <input type="date" id="taskDate" />
+        </div>
+        <div>
+          <label>Priority</label>
+          <select id="taskPriority">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Category</label>
+          <select id="taskCategory">
+            <option value="general">General</option>
+            <option value="college">College</option>
+            <option value="personal">Personal</option>
+            <option value="project">Project</option>
+          </select>
+        </div>
+        <div>
+          <label>Status</label>
+          <select id="taskStatus">
+            <option value="todo">To Do</option>
+            <option value="inprogress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('addTaskModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay-bg" id="overlayBg" onclick="closeAllModals()"></div>
+
+<script src="../js/storage.js"></script>
+<script src="../js/tasks.js"></script>
+</body>
+</html>

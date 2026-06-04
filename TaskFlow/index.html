@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TaskFlow – Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon"><i class="fa-solid fa-bolt"></i></span>
+    <span class="logo-text">TaskFlow</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a href="pages/tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>My Tasks</span></a>
+    <a href="pages/calendar.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Calendar</span></a>
+    <a href="pages/analytics.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i><span>Analytics</span></a>
+    <a href="pages/settings.html" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">SR</div>
+    <div class="user-info">
+      <span class="user-name">Sravani Reddy</span>
+      <span class="user-role">Student</span>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+  <header class="top-bar">
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    <div class="top-bar-left">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-sub">Welcome back, Sravani 👋</p>
+    </div>
+    <div class="top-bar-right">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Search tasks..." id="globalSearch" />
+      </div>
+      <button class="btn-primary" onclick="openModal('addTaskModal')"><i class="fa-solid fa-plus"></i> Add Task</button>
+      <div class="notif-btn"><i class="fa-solid fa-bell"></i><span class="notif-dot"></span></div>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <section class="stats-grid">
+    <div class="stat-card" style="--accent:#f97316">
+      <div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+      <div class="stat-info">
+        <span class="stat-num" id="totalTasks">0</span>
+        <span class="stat-label">Total Tasks</span>
+      </div>
+      <div class="stat-bar"><div class="stat-fill" style="width:100%;background:#f97316"></div></div>
+    </div>
+    <div class="stat-card" style="--accent:#22c55e">
+      <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="stat-info">
+        <span class="stat-num" id="doneTasks">0</span>
+        <span class="stat-label">Completed</span>
+      </div>
+      <div class="stat-bar"><div class="stat-fill" id="doneBar" style="width:0%;background:#22c55e"></div></div>
+    </div>
+    <div class="stat-card" style="--accent:#3b82f6">
+      <div class="stat-icon"><i class="fa-solid fa-spinner"></i></div>
+      <div class="stat-info">
+        <span class="stat-num" id="inProgressTasks">0</span>
+        <span class="stat-label">In Progress</span>
+      </div>
+      <div class="stat-bar"><div class="stat-fill" id="progressBar" style="width:0%;background:#3b82f6"></div></div>
+    </div>
+  </section>
+
+  <!-- TWO COLUMNS -->
+  <div class="dash-grid">
+    <!-- RECENT TASKS -->
+    <section class="card">
+      <div class="card-header">
+        <h2>Recent Tasks</h2>
+        <a href="pages/tasks.html" class="link-sm">View All <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+      <div id="recentTasksList" class="task-list"></div>
+    </section>
+
+    <!-- PRIORITY BREAKDOWN -->
+    <section class="card">
+      <div class="card-header"><h2>Priority Breakdown</h2></div>
+      <div class="priority-chart">
+        <div class="pbar-row"><span>High</span><div class="pbar"><div class="pbar-fill high" id="highBar"></div></div><span id="highCount">0</span></div>
+        <div class="pbar-row"><span>Medium</span><div class="pbar"><div class="pbar-fill medium" id="medBar"></div></div><span id="medCount">0</span></div>
+        <div class="pbar-row"><span>Low</span><div class="pbar"><div class="pbar-fill low" id="lowBar"></div></div><span id="lowCount">0</span></div>
+      </div>
+
+      <div class="card-header" style="margin-top:2rem"><h2>Quick Add</h2></div>
+      <div class="quick-add">
+        <input type="text" id="quickTitle" placeholder="Task title..." />
+        <select id="quickPriority">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+        <button class="btn-primary" onclick="quickAddTask()"><i class="fa-solid fa-plus"></i> Add</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- TODAY'S TASKS -->
+  <section class="card" style="margin-top:1.5rem">
+    <div class="card-header">
+      <h2>Today's Tasks</h2>
+      <span id="todayDate" class="date-badge"></span>
+    </div>
+    <div id="todayTasksList" class="task-list"></div>
+  </section>
+</main>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-overlay" id="addTaskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add New Task</h2>
+      <button onclick="closeModal('addTaskModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <label>Task Title *</label>
+      <input type="text" id="taskTitle" placeholder="Enter task title..." />
+      <label>Description</label>
+      <textarea id="taskDesc" placeholder="Describe the task..."></textarea>
+      <div class="form-row">
+        <div>
+          <label>Due Date</label>
+          <input type="date" id="taskDate" />
+        </div>
+        <div>
+          <label>Priority</label>
+          <select id="taskPriority">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div>
+          <label>Category</label>
+          <select id="taskCategory">
+            <option value="general">General</option>
+            <option value="college">College</option>
+            <option value="personal">Personal</option>
+            <option value="project">Project</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('addTaskModal')">Cancel</button>
+      <button class="btn-primary" onclick="addTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay-bg" id="overlayBg" onclick="closeAllModals()"></div>
+
+<script src="js/storage.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

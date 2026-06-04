@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TaskFlow – Analytics</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .chart-container { width:100%; height:220px; position:relative; }
+    canvas { display:block; }
+
+    /* Simple bar chart styles */
+    .bar-chart { display:flex; align-items:flex-end; gap:8px; height:180px; padding: 0 0.5rem; }
+    .bar-wrap { display:flex; flex-direction:column; align-items:center; gap:5px; flex:1; }
+    .bar-outer { flex:1; display:flex; align-items:flex-end; width:100%; }
+    .bar { width:100%; border-radius:6px 6px 0 0; transition: height 0.6s ease; min-height:4px; }
+    .bar-label { font-size:0.7rem; color:var(--text-muted); text-align:center; }
+    .bar-val { font-size:0.7rem; font-weight:700; color:var(--text); }
+
+    /* Pie / donut chart */
+    .donut-wrap { display:flex; align-items:center; gap:1.5rem; }
+    .donut-legend { display:flex; flex-direction:column; gap:0.6rem; }
+    .legend-item { display:flex; align-items:center; gap:8px; font-size:0.82rem; }
+    .legend-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+
+    .metric-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.2rem;
+      text-align: center;
+    }
+    .metric-val { font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; color:var(--text); }
+    .metric-label { font-size:0.8rem; color:var(--text-muted); margin-top:4px; }
+    .metric-sub { font-size:0.75rem; margin-top:4px; }
+
+    @media (max-width:900px) { .analytics-grid { grid-template-columns:1fr; } .metric-row { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon"><i class="fa-solid fa-bolt"></i></span>
+    <span class="logo-text">TaskFlow</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="../index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+    <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>My Tasks</span></a>
+    <a href="calendar.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i><span>Calendar</span></a>
+    <a href="analytics.html" class="nav-item active"><i class="fa-solid fa-chart-bar"></i><span>Analytics</span></a>
+    <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">SR</div>
+    <div class="user-info">
+      <span class="user-name">Sravani Reddy</span>
+      <span class="user-role">Student</span>
+    </div>
+  </div>
+</aside>
+
+<main class="main-content">
+  <header class="top-bar">
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    <div class="top-bar-left">
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-sub">Insights into your productivity</p>
+    </div>
+  </header>
+
+  <!-- KEY METRICS -->
+  <div class="metric-row" id="metricsRow"></div>
+
+  <!-- CHARTS GRID -->
+  <div class="analytics-grid">
+    <div class="card">
+      <div class="card-header"><h2>Tasks by Status</h2></div>
+      <div id="statusChart" class="donut-wrap"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>Tasks by Priority</h2></div>
+      <div id="priorityChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>Tasks by Category</h2></div>
+      <div id="categoryChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>Completion Rate</h2></div>
+      <div id="completionChart"></div>
+    </div>
+  </div>
+
+  <!-- RECENT ACTIVITY TABLE -->
+  <div class="card">
+    <div class="card-header"><h2>All Tasks Overview</h2></div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse" id="overviewTable">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="padding:0.7rem;text-align:left;font-size:0.78rem;color:var(--text-muted);font-weight:600">Title</th>
+            <th style="padding:0.7rem;text-align:left;font-size:0.78rem;color:var(--text-muted);font-weight:600">Status</th>
+            <th style="padding:0.7rem;text-align:left;font-size:0.78rem;color:var(--text-muted);font-weight:600">Priority</th>
+            <th style="padding:0.7rem;text-align:left;font-size:0.78rem;color:var(--text-muted);font-weight:600">Category</th>
+            <th style="padding:0.7rem;text-align:left;font-size:0.78rem;color:var(--text-muted);font-weight:600">Due Date</th>
+          </tr>
+        </thead>
+        <tbody id="overviewBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="../js/storage.js"></script>
+<script>
+function renderAnalytics() {
+  const tasks = Storage.getTasks();
+  const total = tasks.length;
+  const done = tasks.filter(t => t.status==='done').length;
+  const inprog = tasks.filter(t => t.status==='inprogress').length;
+  const todo = tasks.filter(t => t.status==='todo').length;
+  const overdue = tasks.filter(t => isOverdue(t.dueDate) && t.status!=='done').length;
+  const compRate = total ? Math.round((done/total)*100) : 0;
+
+  // Metrics
+  document.getElementById('metricsRow').innerHTML = `
+    <div class="metric-card"><div class="metric-val">${total}</div><div class="metric-label">Total Tasks</div></div>
+    <div class="metric-card"><div class="metric-val" style="color:var(--success)">${compRate}%</div><div class="metric-label">Completion Rate</div><div class="metric-sub" style="color:var(--text-muted)">${done} of ${total} done</div></div>
+    
+  `;
+
+  // Status donut (SVG)
+  const statusData = [
+    { label:'Done', val:done, color:'#22c55e' },
+    { label:'In Progress', val:inprog, color:'#3b82f6' },
+    { label:'To Do', val:todo, color:'#7c8098' },
+  ];
+  document.getElementById('statusChart').innerHTML = `
+    ${buildDonut(statusData, total)}
+    <div class="donut-legend">
+      ${statusData.map(d=>`<div class="legend-item"><div class="legend-dot" style="background:${d.color}"></div><span>${d.label}: <b>${d.val}</b></span></div>`).join('')}
+    </div>
+  `;
+
+  // Priority bar chart
+  const high = tasks.filter(t=>t.priority==='high').length;
+  const med = tasks.filter(t=>t.priority==='medium').length;
+  const low = tasks.filter(t=>t.priority==='low').length;
+  const maxP = Math.max(high,med,low,1);
+  document.getElementById('priorityChart').innerHTML = `
+    <div class="bar-chart">
+      ${[{l:'High',v:high,c:'#ef4444'},{l:'Medium',v:med,c:'#f97316'},{l:'Low',v:low,c:'#22c55e'}].map(b=>`
+        <div class="bar-wrap">
+          <div class="bar-val">${b.v}</div>
+          <div class="bar-outer"><div class="bar" style="height:${(b.v/maxP)*140}px;background:${b.c}"></div></div>
+          <div class="bar-label">${b.l}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // Category bar chart
+  const cats = ['general','college','personal','project'];
+  const catColors = { general:'#6c63ff', college:'#3b82f6', personal:'#ec4899', project:'#f97316' };
+  const catCounts = cats.map(c => tasks.filter(t=>t.category===c).length);
+  const maxC = Math.max(...catCounts, 1);
+  document.getElementById('categoryChart').innerHTML = `
+    <div class="bar-chart">
+      ${cats.map((c,i)=>`
+        <div class="bar-wrap">
+          <div class="bar-val">${catCounts[i]}</div>
+          <div class="bar-outer"><div class="bar" style="height:${(catCounts[i]/maxC)*140}px;background:${catColors[c]}"></div></div>
+          <div class="bar-label" style="text-transform:capitalize">${c}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // Completion rate visual
+  document.getElementById('completionChart').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:180px;gap:1rem">
+      <div style="position:relative;width:130px;height:130px">
+        <svg viewBox="0 0 36 36" style="width:130px;height:130px;transform:rotate(-90deg)">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--surface2)" stroke-width="3"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#22c55e" stroke-width="3"
+            stroke-dasharray="${compRate} ${100-compRate}" stroke-dashoffset="0" stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column">
+          <span style="font-family:Syne,sans-serif;font-size:1.6rem;font-weight:800;color:var(--text)">${compRate}%</span>
+          <span style="font-size:0.7rem;color:var(--text-muted)">complete</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Overview table
+  document.getElementById('overviewBody').innerHTML = tasks.map(t => `
+    <tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:0.65rem;font-size:0.85rem">${escapeHtml(t.title)}</td>
+      <td style="padding:0.65rem"><span class="badge badge-${t.status}">${t.status==='inprogress'?'In Progress':t.status==='todo'?'To Do':'Done'}</span></td>
+      <td style="padding:0.65rem"><span class="badge badge-${t.priority}">${t.priority}</span></td>
+      <td style="padding:0.65rem"><span class="badge badge-${t.category}">${t.category}</span></td>
+      <td style="padding:0.65rem;font-size:0.8rem;color:${isOverdue(t.dueDate)&&t.status!=='done'?'var(--danger)':'var(--text-muted)'}">${t.dueDate?formatDate(t.dueDate):'—'}</td>
+    </tr>
+  `).join('');
+}
+
+function buildDonut(data, total) {
+  if (!total) return '<svg viewBox="0 0 36 36" width="120" height="120"><circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--surface2)" stroke-width="3"/></svg>';
+  let offset = 25;
+  const circles = data.map(d => {
+    const pct = (d.val / total) * 100;
+    const circ = `<circle cx="18" cy="18" r="15.9" fill="none" stroke="${d.color}" stroke-width="3"
+      stroke-dasharray="${pct} ${100-pct}" stroke-dashoffset="${offset}" stroke-linecap="butt"/>`;
+    offset -= pct;
+    return circ;
+  }).join('');
+  return `<svg viewBox="0 0 36 36" width="120" height="120" style="transform:rotate(-90deg);flex-shrink:0">
+    <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--surface2)" stroke-width="3"/>
+    ${circles}
+  </svg>`;
+}
+
+function escapeHtml(str) { return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+document.addEventListener('DOMContentLoaded', renderAnalytics);
+</script>
+</body>
+</html>
